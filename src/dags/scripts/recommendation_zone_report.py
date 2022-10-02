@@ -20,8 +20,9 @@ def dist_count(lat1, lat2, lon1, lon2):
 
 def recommendation_zone_report():
     try:
-        dir_name_from = sys.argv[1]
-        dir_name_to = sys.argv[2]
+        date = sys.argv[1]
+        dir_name_from = sys.argv[2]
+        dir_name_to = sys.argv[3]
 
         spark = SparkSession\
             .builder.appName(f"RecomendationZoneReport")\
@@ -35,7 +36,7 @@ def recommendation_zone_report():
         
         data_messages = spark.read\
             .parquet(dir_name_from)\
-            .where("event_type='message' and nearest_city is not null")\
+            .where(f"event_type='message' and nearest_city is not null and date <= '{date}'")\
         
         
         logging.info("data_messages was loaded successfully")

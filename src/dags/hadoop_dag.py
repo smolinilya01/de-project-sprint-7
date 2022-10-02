@@ -49,7 +49,7 @@ with DAG(
 
     built_user_zone_report_task = BashOperator(
         task_id='built_user_zone_report',
-        bash_command=f"spark-submit --master local /lessons/dags/scripts/user_zone_report.py {data_ods_events_path} {user_zone_report_path}",
+        bash_command=f"spark-submit --master local /lessons/dags/scripts/user_zone_report.py {exec_date} {data_ods_events_path} {user_zone_report_path}",
         retries=3
     )
     
@@ -61,7 +61,7 @@ with DAG(
 
     built_recommendation_zone_report_task = BashOperator(
         task_id='built_recommendation_zone_report',
-        bash_command=f"spark-submit --master local /lessons/dags/scripts/recommendation_zone_report.py {data_ods_events_path} {recommendation_zone_report_path}",
+        bash_command=f"spark-submit --master local /lessons/dags/scripts/recommendation_zone_report.py {exec_date} {data_ods_events_path} {recommendation_zone_report_path}",
         retries=3
     )
     
