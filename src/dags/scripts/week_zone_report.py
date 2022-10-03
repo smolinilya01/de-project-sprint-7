@@ -3,29 +3,29 @@ import logging
 import pyspark.sql.functions as F 
 import datetime as dt
 
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
     
 
-def week_zone_report():
+def week_zone_report() -> None:
     try:
-        date = sys.argv[1]
-        dir_name_from = sys.argv[2]
-        dir_name_to = sys.argv[3]
+        date: str = sys.argv[1]
+        dir_name_from: str = sys.argv[2]
+        dir_name_to: str = sys.argv[3]
 
-        spark = SparkSession\
+        spark: SparkSession = SparkSession\
             .builder.appName(f"WeekZoneReport-{date}")\
             .config("spark.dynamicAllocation.enabled", "true")\
             .getOrCreate()
     
-        cur_date = dt.datetime.strptime(date, '%Y-%m-%d')
-        week_start = cur_date - dt.timedelta(days=cur_date.weekday())
-        week_end = week_start + dt.timedelta(days=6)
-        month_start = cur_date - dt.timedelta(days=cur_date.day-1)
+        cur_date: dt.datetime = dt.datetime.strptime(date, '%Y-%m-%d')
+        week_start: dt.datetime = cur_date - dt.timedelta(days=cur_date.weekday())
+        week_end: dt.datetime = week_start + dt.timedelta(days=6)
+        month_start: dt.datetime = cur_date - dt.timedelta(days=cur_date.day-1)
 
 
         logging.info("SparkSession was created successfully")
         
-        data_events = spark.read\
+        data_events: DataFrame = spark.read\
             .parquet(dir_name_from)\
             .where(f"date>='{month_start.strftime('%Y-%m-%d')}' and date < '{date}'")\
             .withColumn("month", F.month(F.col('date')))\
@@ -37,7 +37,7 @@ def week_zone_report():
         
         logging.info("data_events was loaded successfully")
         
-        data_events_week = data_events\
+        data_events_week: DataFrame = data_events\
             .groupBy("month", "week", 'nearest_city')\
             .pivot('event_type')\
             .count()\
@@ -50,7 +50,7 @@ def week_zone_report():
                 F.col('subscription').alias('week_subscription')
             )
         
-        data_events_month = data_events\
+        data_events_month: DataFrame = data_events\
             .groupBy("month", 'nearest_city')\
             .pivot('event_type')\
             .count()\
@@ -62,7 +62,7 @@ def week_zone_report():
                 F.col('subscription').alias('month_subscription')
             )
         
-        report = data_events_week.join(data_events_month, on=["month", 'nearest_city'], how='left')
+        report: DataFrame = data_events_week.join(data_events_month, on=["month", 'nearest_city'], how='left')
         logging.info("report was loaded successfully")
         
         report.write\
